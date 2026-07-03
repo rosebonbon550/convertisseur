@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur HEIC en JPG Premium</title>
+    <meta name="description" content="Convertissez vos photos iPhone HEIC au format JPG gratuitement et instantanément. Outil rapide, sécurisé et sans inscription.">
+    <meta name="keywords" content="convertisseur heic jpg, heic en jpg, transformer heic en jpg, gratuit, hd, convertisseur gratuit">
+    
+    <!-- Script officiel de conversion HEIC -->
+    <script src="https://cloudflare.com"></script>
+
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-hover: #d97706;
+            --bg: #fffbeb;
+            --card: #ffffff;
+            --text: #1f2937;
+            --premium: #ffdd00;
+            --premium-text: #000000;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            text-align: center;
+        }
+        h1 { margin-top: 0; font-size: 1.75rem; color: #78350f; }
+        .options-panel {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .options-title { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .radio-group { display: flex; gap: 1rem; }
+        .radio-label { display: flex; align-items: center; gap: 0.25rem; cursor: pointer; }
+        .badge-pro { background: #6366f1; color: white; font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; }
+        .drop-zone {
+            border: 2px dashed #fde68a;
+            padding: 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+            display: block;
+            background: #f9fafb;
+        }
+        .drop-zone:hover { border-color: var(--primary); }
+        input[type="file"] { display: none; }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            display: none;
+            margin-bottom: 1.5rem;
+        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        #preview { max-width: 100%; max-height: 250px; margin-bottom: 1.5rem; display: none; border-radius: 6px; }
+        .status-msg { font-size: 0.9rem; color: #4b5563; margin-bottom: 1rem; display: none; font-weight: bold; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; text-align: center;
+        }
+        .btn-buy { background: var(--premium); color: var(--premium-text); padding: 0.75rem; border-radius: 6px; text-decoration: none; display: block; font-weight: bold; margin: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-close { color: #64748b; background: none; border: none; display: inline; cursor: pointer; text-decoration: underline; font-size: 0.9rem; }
+        .pro-auth { margin-top: 1rem; display: flex; gap: 0.5rem; }
+        .pro-auth input { flex: 1; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; }
+        .pro-auth button { display: block; width: auto; margin: 0; padding: 0.5rem 1rem; font-size: 0.9rem; background: #374151; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        
+        /* Styles de la zone de pub */
+        .ads-container { margin-top: 2rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; min-height: 90px; }
+        .ads-label { font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem; text-transform: uppercase; }
+        .ads-box-real { width: 728px; height: 90px; max-width: 100%; margin: 0 auto; display: block; }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById('fileInput');
+            const dropText = document.getElementById('dropText');
+            const preview = document.getElementById('preview');
+            const convertBtn = document.getElementById('convertBtn');
+            const proModal = document.getElementById('proModal');
+            const codeProInput = document.getElementById('codeProInput');
+            const validerCodeBtn = document.getElementById('validerCodeBtn');
+            const adsBox = document.getElementById('adsBox');
+            const statusMsg = document.getElementById('statusMsg');
+            
+            let loadedFile = null;
+            let fileName = 'image.jpg';
+            let isProUser = false;
+
+            validerCodeBtn.addEventListener('click', () => {
+                if (codeProInput.value.trim() === "PREMIUM2026") {
+                    isProUser = true;
+                    if(adsBox) adsBox.style.display = 'none'; 
+                    alert("Félicitations ! Version Premium activée avec succès. 🎉");
+                } else {
+                    alert("Code invalide.");
+                }
+            });
+
+            window.checkPro = function(e) {
+                if (!isProUser) {
+                    e.preventDefault();
+                    document.getElementById('optPro2').checked = false;
+                    document.getElementById('optPro3').checked = false;
+                    proModal.style.display = 'flex';
+                }
+            };
+
+            window.closeModal = function() { proModal.style.display = 'none'; };
+
+            fileInput.addEventListener('change', (e) => {
+                const files = e.target.files;
+                if (!files || files.length === 0) return;
+
+                loadedFile = files[0];
+                fileName = loadedFile.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                preview.style.display = 'none';
+                convertBtn.style.display = 'block';
+                dropText.textContent = `Fichier chargé : ${loadedFile.name}`;
+            });
+
+            convertBtn.addEventListener('click', () => {
+                if (!loadedFile) return;
+
+                const quality = parseFloat(document.querySelector('input[name="quality"]:checked').value);
+                convertBtn.disabled = true;
+                statusMsg.style.display = 'block';
+
+                heic2any({
+                    blob: loadedFile,
+                    toType: "image/jpeg",
+                    quality: quality
+                })
+                .then(function(resultBlob) {
+                    convertBtn.disabled = false;
+                    statusMsg.style.display = 'none';
+                    
+                    const url = URL.createObjectURL(resultBlob);
+                    preview.src = url;
+                    preview.style.display = 'block';
+
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = url;
+                    downloadLink.download = fileName;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                })
+                .catch(function(err) {
+                    convertBtn.disabled = false;
+                    statusMsg.style.display = 'none';
+                    alert("Erreur lors de la conversion du fichier HEIC. Assurez-vous qu'il s'agit d'une vraie image iPhone.");
+                });
+            });
+
+            // Injection dynamique sécurisée pour Adsterra sur votre vrai site
+            const loadScript = document.createElement('script');
+            loadScript.src = 'https://highperformanceformat.com';
+            window.atOptions = {
+                'key' : '3f4f3e265c2a3aaaee43a1375a8bd50d',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+            document.getElementById('adPlacement').appendChild(loadScript);
+        });
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Convertisseur HEIC en JPG</h1>
+    <p>Sélectionnez ou glissez une photo iPhone (.heic) pour la transformer en JPG.</p>
+    
+    <div class="options-panel">
+        <div class="options-title">Qualité du fichier JPG de sortie :</div>
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" name="quality" value="0.75" checked> Standard (75%)
+            </label>
+            <label class="radio-label" onclick="checkPro(event)">
+                <input type="radio" name="quality" value="0.90" id="optPro2"> Haute Qualité (90%) <span class="badge-pro">PRO</span>
+            </label>
+            <label class="radio-label" onclick="checkPro(event)">
+                <input type="radio" name="quality" value="1.0" id="optPro3"> Maximale (100%) <span class="badge-pro">PRO</span>
+            </label>
+        </div>
+    </div>
+
+    <label class="drop-zone" id="dropZone">
+        <span id="dropText">Choisir un fichier HEIC</span>
